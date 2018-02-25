@@ -5,7 +5,7 @@
 #ifndef LIST_HEAP_SORT_H
 #define LIST_HEAP_SORT_H
 
-#include "heap.h"
+#include "../heap.h"
 
 template <typename ValueType>
 static void heapSort(std::vector<ValueType>& data) {
@@ -18,7 +18,7 @@ static void heapSort(std::vector<ValueType>& data) {
 
 template <typename ValueType, typename Compare>
 static void heapSort(std::vector<ValueType>& data, Compare cmp) {
-    make_heap(data);
+    make_heap(data, cmp);
     for (int i = data.size() - 1; i > 0; --i) {
         std::swap(data[0], data[i]);
         _percolate_down_bound(data, 0, i, cmp);

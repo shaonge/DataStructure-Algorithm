@@ -12,32 +12,32 @@
 // [top, end)
 template <typename ValueType, typename Compare>
 static void _percolate_down_bound(std::vector<ValueType>& data, std::size_t top, size_t end, Compare cmp) {
-    auto i = top + 1;
-    while (2 * i <= end) {
-        auto j = 2 * i;
-        if (j + 1 <= end && cmp(data[j - 1], data[j])) {
+    auto i = top;
+    while (2 * i + 1 < end) {
+        auto j = 2 * i + 1;
+        if (j + 1 < end && cmp(data[j], data[j + 1])) {
             j += 1;
         }
-        if (!cmp(data[i - 1], data[j - 1])) {
+        if (!cmp(data[i], data[j])) {
             return;
         }
-        std::swap(data[i - 1], data[j - 1]);
+        std::swap(data[i], data[j]);
         i = j;
     }
 }
 
 template <typename ValueType>
 static void _percolate_down_bound(std::vector<ValueType>& data, std::size_t top, size_t end) {
-    auto i = top + 1;
-    while (2 * i <= end) {
-        auto j = 2 * i;
-        if (j + 1 <= end && data[j - 1] < data[j]) {
+    auto i = top;
+    while (2 * i + 1 < end) {
+        auto j = 2 * i + 1;
+        if (j + 1 < end && data[j] < data[j + 1]) {
             j += 1;
         }
-        if (data[i - 1] >= data[j - 1]) {
+        if (data[i] >= data[j]) {
             return;
         }
-        std::swap(data[i - 1], data[j - 1]);
+        std::swap(data[i], data[j]);
         i = j;
     }
 }
@@ -45,58 +45,58 @@ static void _percolate_down_bound(std::vector<ValueType>& data, std::size_t top,
 // [top, data.size())
 template <typename ValueType, typename Compare>
 static void _percolate_down(std::vector<ValueType>& data, std::size_t top, Compare cmp) {
-    auto i = top + 1;
-    while (2 * i <= data.size()) {
-        auto j = 2 * i;
-        if (j + 1 <= data.size() && cmp(data[j - 1], data[j])) {
+    auto i = top;
+    while (2 * i + 1 < data.size()) {
+        auto j = 2 * i + 1;
+        if (j + 1 < data.size() && cmp(data[j], data[j + 1])) {
             j += 1;
         }
-        if (!cmp(data[i - 1], data[j - 1])) {
+        if (!cmp(data[i], data[j])) {
             return;
         }
-        std::swap(data[i - 1], data[j - 1]);
+        std::swap(data[i], data[j]);
         i = j;
     }
 }
 
 template <typename ValueType>
 static void _percolate_down(std::vector<ValueType>& data, std::size_t top) {
-    auto i = top + 1;
-    while (2 * i <= data.size()) {
-        auto j = 2 * i;
-        if (j + 1 <= data.size() && data[j - 1] < data[j]) {
+    auto i = top;
+    while (2 * i + 1 < data.size()) {
+        auto j = 2 * i + 1;
+        if (j + 1 < data.size() && data[j] < data[j + 1]) {
             j += 1;
         }
-        if (data[i - 1] >= data[j - 1]) {
+        if (data[i] >= data[j]) {
             return;
         }
-        std::swap(data[i - 1], data[j - 1]);
+        std::swap(data[i], data[j]);
         i = j;
     }
 }
 
 template <typename ValueType, typename Compare>
 static void _percolate_up(std::vector<ValueType>& data, std::size_t bottom, Compare cmp) {
-    auto i = bottom + 1;
-    while (i / 2 > 0) {
-        auto j = i / 2;
-        if (!cmp(data[j - 1], data[i - 1])) {
+    auto i = bottom;
+    while ((i - 1) / 2 >= 0) {
+        auto j = (i - 1) / 2;
+        if (!cmp(data[j], data[i])) {
             return;
         }
-        std::swap(data[i - 1], data[j - 1]);
+        std::swap(data[i], data[j]);
         i = j;
     }
 }
 
 template <typename ValueType>
 static void _percolate_up(std::vector<ValueType>& data, std::size_t bottom) {
-    auto i = bottom + 1;
-    while (i / 2 > 0) {
-        auto j = i / 2;
-        if (data[j - 1] >= data[i - 1]) {
+    auto i = bottom;
+    while ((i - 1) / 2 >= 0) {
+        auto j = (i - 1) / 2;
+        if (data[j] >= data[i]) {
             return;
         }
-        std::swap(data[i - 1], data[j - 1]);
+        std::swap(data[i], data[j]);
         i = j;
     }
 }
