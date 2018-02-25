@@ -4,40 +4,42 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <utility>
+#include <iterator>
 
-namespace gss {
-
-template <typename T> struct ListNode {
-    ListNode* prev;
-    ListNode* next;
+template<typename T>
+struct ListNode {
+    ListNode *prev;
+    ListNode *next;
     T data;
 
     ListNode() : prev(nullptr), next(nullptr), data() {}
 
-    ListNode(ListNode* p, ListNode* n, T d) : prev(p), next(n), data(d) {}
+    ListNode(ListNode *p, ListNode *n, T d) : prev(p), next(n), data(d) {}
 };
 
-template <typename T> class ListIterator;
+template<typename T>
+class ListIterator;
 
-template <typename T> class List {
-  public:
+template<typename T>
+class List {
+public:
     friend class ListIterator<T>;
 
-  public:
+public:
     typedef ListNode<T> node_type;
     typedef T value_type;
     typedef std::size_t size_type;
     typedef std::ptrdiff_t difference_type;
-    typedef T& reference;
-    typedef const T& const_reference;
-    typedef T* pointer;
-    typedef const T* const_pointer;
+    typedef T &reference;
+    typedef const T &const_reference;
+    typedef T *pointer;
+    typedef const T *const_pointer;
     typedef ListIterator<T> iterator;
 
-  public:
-    List() : head_{new node_type{}} { _init(); };
+public:
+    List() : head_(new node_type()) { _init(); };
 
-    explicit List(std::initializer_list<T> il) : List() {
+    List(std::initializer_list<T> il) : List() {
         for (auto beg = il.begin(), end = il.end(); beg != end; ++beg) {
             auto new_node = new node_type{nullptr, nullptr, *beg};
             _addNodeBefore(head_, new_node);
@@ -45,12 +47,12 @@ template <typename T> class List {
         }
     }
 
-    List(const List& rhs) {
-        _deepCopy(rhs.head_, &this->head_);
+    List(const List &rhs) : List() {
+        _deepCopy(rhs.head_, this->head_);
         this->size_ = rhs.size_;
     }
 
-    List(List&& rhs) noexcept : List() { swap(rhs); }
+    List(List &&rhs) noexcept : List() { swap(rhs); }
 
     ~List() {
         clear();
@@ -58,17 +60,16 @@ template <typename T> class List {
         delete head_;
     }
 
-    List& operator=(const List& rhs) {
+    List &operator=(const List &rhs) {
         clear();
-        delete head_;
 
-        _deepCopy(rhs.head_, &this->head_);
+        _deepCopy(rhs.head_, this->head_);
         this->size_ = rhs.size_;
 
         return *this;
     }
 
-    List& operator=(List&& rhs) noexcept {
+    List &operator=(List &&rhs) noexcept {
         swap(rhs);
 
         return *this;
@@ -77,12 +78,12 @@ template <typename T> class List {
     size_type size() const { return size_; }
 
     bool empty() const {
-        return size_ == 0 && head_->prev == head_ && head_ == head_->next;
+        return size_ == 0;
     }
 
     void clear() {
-        for (node_type* p = head_->next; p != head_;) {
-            node_type* pp = p->next;
+        for (auto p = head_->next; p != head_;) {
+            node_type *pp = p->next;
             delete p;
             p = pp;
         }
@@ -91,118 +92,127 @@ template <typename T> class List {
     }
 
     reference front() {
-        if (!head_ || empty()) {
-            throw std::out_of_range{""};
+        if (size_ == 0) {
+            throw std::out_of_range("");
         }
 
         return head_->next->data;
     }
 
     const_reference front() const {
-        if (!head_ || empty()) {
-            throw std::out_of_range{""};
+        if (size_ == 0) {
+            throw std::out_of_range("");
         }
 
         return head_->next->data;
     }
 
     reference back() {
-        if (!head_ || empty()) {
-            throw std::out_of_range{""};
+        if (size_ == 0) {
+            throw std::out_of_range("");
         }
 
         return head_->prev->data;
     }
 
     const_reference back() const {
-        if (!head_ || empty()) {
-            throw std::out_of_range{""};
+        if (size_ == 0) {
+            throw std::out_of_range("");
         }
 
         return head_->prev->data;
     }
 
-    void push_back(const T& elem) {
-        auto* new_node = new node_type{nullptr, nullptr, elem};
+    void push_back(const T &elem) {
+        auto *new_node = new node_type(nullptr, nullptr, elem);
         _addNodeBefore(head_, new_node);
         ++size_;
     }
 
-    void push_front(const T& elem) {
-        auto* new_node = new node_type{nullptr, nullptr, elem};
+    void push_front(const T &elem) {
+        auto *new_node = new node_type(nullptr, nullptr, elem);
         _addNodeAfter(head_, new_node);
         ++size_;
     }
 
     void pop_back() {
-        if (!head_ || empty()) {
-            throw std::out_of_range{""};
+        if (size_ == 0) {
+            throw std::out_of_range("");
         }
 
-        node_type* p = head_->prev;
-        _deleteNode(head_->prev);
+        node_type *p = head_->prev;
+        _deleteNode(p);
         delete p;
 
         --size_;
     }
 
     void pop_front() {
-        if (!head_) {
-            throw std::out_of_range{""};
+        if (size_ == 0) {
+            throw std::out_of_range("");
         }
 
-        node_type* p = head_->next;
-        _deleteNode(head_->next);
+        node_type *p = head_->next;
+        _deleteNode(p);
         delete p;
 
         --size_;
+    }
+
+    iterator insert(iterator pos, const value_type &value) {
+        auto *new_node = new node_type(nullptr, nullptr, value);
+        _addNodeBefore(pos.cur_, new_node);
+        ++size_;
+        return iterator(pos.cur_->prev);
+    }
+
+    iterator erase(iterator pos) {
+        if (pos.cur_ == head_) {
+            throw std::out_of_range("");
+        }
+
+        auto pp = pos.cur_->next;
+        _deleteNode(pos.cur_);
+        delete pos.cur_;
+        --size_;
+        return iterator(pp);
     }
 
     iterator begin();
 
     iterator end();
 
-    void swap(List& rhs) noexcept {
+    void swap(List &rhs) noexcept {
         std::swap(this->head_, rhs.head_);
         std::swap(this->size_, rhs.size_);
     }
 
-  private:
-    void _addNodeBetween(node_type* prev, node_type* next,
-                         node_type* new_node) {
+private:
+    void _addNodeBetween(node_type *prev, node_type *next,
+                         node_type *new_node) {
         prev->next = new_node;
         new_node->prev = prev;
         new_node->next = next;
         next->prev = new_node;
     }
 
-    void _addNodeBefore(node_type* cur, node_type* new_node) {
+    void _addNodeBefore(node_type *cur, node_type *new_node) {
         _addNodeBetween(cur->prev, cur, new_node);
     }
 
-    void _addNodeAfter(node_type* cur, node_type* new_node) {
+    void _addNodeAfter(node_type *cur, node_type *new_node) {
         _addNodeBetween(cur, cur->next, new_node);
     }
 
-    void _deleteNode(node_type* cur) {
+    void _deleteNode(node_type *cur) {
         cur->prev->next = cur->next;
         cur->next->prev = cur->prev;
     }
 
-    void _deepCopy(node_type* from, node_type** to) {
-        if (!from) {
-            return;
-        }
-
-        auto tp = *to = new node_type{nullptr, nullptr, from->data};
-        tp->next = tp;
-        tp->prev = tp;
-
-        for (auto fp = from->next; fp != from;) {
-            auto new_node = new node_type{nullptr, nullptr, fp->data};
-            _addNodeBefore(tp, new_node);
-            fp = fp->next;
-            tp = tp->next;
+    void _deepCopy(node_type *from, node_type *to) {
+        for (auto p = from->next; p != from; p = p->next) {
+            auto new_node = new node_type{nullptr, nullptr, p->data};
+            _addNodeBefore(to, new_node);
         }
     }
 
@@ -212,33 +222,42 @@ template <typename T> class List {
         size_ = 0;
     }
 
-  private:
-    node_type* head_;
+private:
+    node_type *head_;
     std::size_t size_;
 };
 
-template <typename T> class ListIterator {
-  public:
+template<typename T>
+class ListIterator {
+public:
+    friend class List<T>;
+
+public:
+    typedef std::bidirectional_iterator_tag iterator_category;
+    typedef T value_type;
+    typedef std::ptrdiff_t difference_type;
+    typedef T *pointer;
+    typedef T &reference;
     typedef typename List<T>::node_type node_type;
-    typedef typename List<T>::reference reference;
-    typedef typename List<T>::pointer pointer;
 
-  public:
-    explicit ListIterator(node_type* p) : cur_{p} {}
+public:
+    ListIterator() : cur_(nullptr) {}
 
-    ListIterator(const ListIterator& rhs) = default;
+    explicit ListIterator(node_type *p) : cur_(p) {}
 
-    ListIterator& operator=(const ListIterator& rhs) = default;
+    ListIterator(const ListIterator &rhs) = default;
 
-    ListIterator(ListIterator&& rhs) noexcept : cur_{nullptr} { swap(rhs); }
+    ListIterator &operator=(const ListIterator &rhs) = default;
 
-    ListIterator& operator=(ListIterator&& rhs) noexcept { swap(rhs); }
+    ListIterator(ListIterator &&rhs) noexcept : cur_(nullptr) { swap(rhs); }
 
-    bool operator==(const ListIterator& rhs) const {
+    ListIterator &operator=(ListIterator &&rhs) noexcept { swap(rhs); }
+
+    bool operator==(const ListIterator &rhs) const {
         return this->cur_ == rhs.cur_;
     }
 
-    bool operator!=(const ListIterator& rhs) const {
+    bool operator!=(const ListIterator &rhs) const {
         return this->cur_ != rhs.cur_;
     }
 
@@ -248,42 +267,42 @@ template <typename T> class ListIterator {
 
     explicit operator bool() const { return cur_ != nullptr; }
 
-    ListIterator& operator++() {
+    ListIterator &operator++() {
         cur_ = cur_->next;
         return *this;
     }
 
     ListIterator operator++(int) {
-        node_type* p = cur_;
+        node_type *p = cur_;
         cur_ = cur_->next;
         return ListIterator{p};
     }
 
-    ListIterator& operator--() {
+    ListIterator &operator--() {
         cur_ = cur_->prev;
         return *this;
     }
 
     ListIterator operator--(int) {
-        node_type* p = cur_;
+        node_type *p = cur_;
         cur_ = cur_->prev;
         return ListIterator{p};
     }
 
-    void swap(ListIterator& rhs) noexcept { std::swap(this->cur_, rhs.cur_); }
+    void swap(ListIterator &rhs) noexcept { std::swap(this->cur_, rhs.cur_); }
 
-  private:
-    node_type* cur_;
+private:
+    node_type *cur_;
 };
 
-template <typename T> typename List<T>::iterator List<T>::begin() {
+template<typename T>
+typename List<T>::iterator List<T>::begin() {
     return iterator{head_->next};
 }
 
-template <typename T> typename List<T>::iterator List<T>::end() {
+template<typename T>
+typename List<T>::iterator List<T>::end() {
     return iterator{head_};
 }
-
-} // namespace gss
 
 #endif // LIST_LIST_H
