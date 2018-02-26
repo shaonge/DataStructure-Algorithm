@@ -1,6 +1,10 @@
-#include "algorithm/string-pattern-matching.h"
-#include <iostream>
+#include "trie.h"
 
 int main() {
-    std::cout << BruteForce("abcdef#454#example98", "example");
+    Trie trie;
+    trie.insert("leet");
+    trie.insert("leetcode");
+    trie.search("leet");
+    trie.search("lett");
+    trie.startsWith("leet");
 }
